@@ -1,0 +1,8 @@
+<div class="col-lg-12">
+    {% for lang in langs %}
+        <div class="col-lg-5">{{ lang.Short() }}</div>
+    {% endfor %}
+    {% if langs|length > 2 %}
+        <div class="col-lg-2"></div>
+    {% endif %}
+</div>

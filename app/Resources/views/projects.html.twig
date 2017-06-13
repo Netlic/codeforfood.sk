@@ -1,0 +1,24 @@
+{% block projects %}
+<div id="trapezoid-right" class="col-lg-5 pull-right">
+    <div class="col-lg-12 project-wrapper">
+        <div class="col-lg-12 inner-project-wrapper">
+            <ul class="project-list">
+                {% for project in projects %}
+                    <li>
+                        <div class="list-group">
+                            <a href="{{path("projects-details",{'project':project.Id})}}" class="list-group-item">
+                                <h4 class="list-group-item-heading">{{ project.ProjectName() }}</h4>
+                                {% if project.Directory.Id == 1 %}
+                                    <span>{{ project.Start()|date("Y", "Europe/Paris") }}</span><span> - {{ project.End()|date("Y", "Europe/Paris") }}</span>
+                                {% endif %}
+                                <p><p class="list-group-item-text">{{ project.ProjectDesc() }}</p></p>
+                            </a>
+                        </div>
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+</div>
+<div class="col-lg-5 trapezoid-bottom trapezoid-bottom-right pull-right"></div>
+{% endblock %}

@@ -1,0 +1,44 @@
+{% extends 'base.html.twig' %}
+
+{% block opengraph %}
+    <meta property="fb:app_id" content="520686318055011"/>
+    <meta property="og:url" content="{{url('homepage')}}" />
+    <meta property="og:title" content="test" />
+    {#<meta property="og:image" content="{{ url('assets/imgs/bozi.jpg') }}" />#}
+{% endblock %}
+
+{% block body %}
+    <div id="wrapper" class="col-lg-12" style="padding: 0">
+        {% embed 'technologies.html.twig' %}{% endembed %}
+        <div class="envelope-front"></div>
+        {% embed 'projects.html.twig' %}{% endembed %}
+        <div id="badge-ribbon"></div>
+        <div class="id-photo" tabindex="10000"></div>
+        <div class="tie"></div>
+        </div>
+    </div>
+    {% embed 'footer.html.twig' %}{% endembed %}
+    {% embed 'modal.share.html.twig' %}{% endembed %}
+    <script>
+        $.ajax({
+            url: '{{ path('langs') }}',
+            type: 'POST',
+            success:function(d){
+                $('.langs').append(d);
+            }
+        });
+    </script>
+    <script src="{{ asset('assets/js/fb.api.js') }}"></script>
+    <script>
+        $('.fa-facebook').click(function(){
+            FB.ui({
+                method: 'share',
+                display: 'popup',
+                href: '{{url('homepage')}}'
+            }, function(response){});
+        });
+        $('.footer-item').eq(0).css({'min-width': '441px'});
+        $('.footer-item').eq(1).css({'min-width': '91px'});
+        $('.contact-wrapper:last').children().css({'display':'inline-block'})//.eq(0).css({'max-width':'164px'});
+    </script>
+{% endblock %}
