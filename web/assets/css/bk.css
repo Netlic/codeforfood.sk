@@ -375,11 +375,11 @@ a {
     height: 170px;
     min-width: 200px;
     /*border-radius: 5px;*/
-    /*background-color: white;
+    /*background-color: white;*/
     background-repeat: no-repeat;
-    background-size: 50%;*/
+    background-size: 50%;
     display: inline-block;
-    /*background-position: center top;*/
+    background-position: center top;
     background-color: #aaa;
     color: white;
     /*border: 3px solid transparent*/
@@ -411,7 +411,7 @@ a {
     transition: all 1s
 }
 .what-i-know-to-do-item-symbol {
-    height: 90px;
+    height: 70px;
 }
 .what-i-know-to-do-item[role="seo"] {
     /*background-image: url("../imgs/seo.png");*/
@@ -420,5 +420,5 @@ a {
     /*background-color: #fff59b*/
 }
 .what-i-know-to-do-item[role="database"] {
-    /*background-color: white*/
+    background-image: url("../imgs/db.png");
 }
