@@ -425,3 +425,6 @@ a {
 .what-i-know-to-do-item[role="stats"] {
     background-image: url("../imgs/statistics.png");
 }
+.what-i-know-to-do-item[role="respons"] {
+    background-image: url("../imgs/responsivity.png");
+}
