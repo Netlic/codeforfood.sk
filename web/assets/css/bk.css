@@ -422,3 +422,6 @@ a {
 .what-i-know-to-do-item[role="database"] {
     background-image: url("../imgs/db.png");
 }
+.what-i-know-to-do-item[role="stats"] {
+    background-image: url("../imgs/statistics.png");
+}
