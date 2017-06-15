@@ -428,3 +428,6 @@ a {
 .what-i-know-to-do-item[role="respons"] {
     background-image: url("../imgs/responsivity.png");
 }
+.what-i-know-to-do-item[role="social"] {
+    background-image: url("../imgs/social.png");
+}
