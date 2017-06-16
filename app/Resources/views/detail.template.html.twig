@@ -18,12 +18,15 @@
         .email > a{
             background-color: #dd4b39;
         }
+        body {
+            min-width: 0px;
+        }
     </style>
     <div class="detail-wrapper">
-        <div class="col-lg-3 page-id-wrapper" style="overflow: scroll;">
+        <div class="col-lg-3 page-id-wrapper " style="overflow: scroll;">
             <div >
-                <div class="id-page-wrapper">
-                    <div class="col-lg-12">
+                <div class="id-page-wrapper ">
+                    <div class="col-lg-12 visible-lg-block">
                         <a href="{{path('homepage')}}" class="col-lg-3">
                             <div class="pull-left" style="height:142px">
                                 <div class="badge-ribbon-mini"></div>
@@ -31,12 +34,12 @@
                             </div>
                         </a>
                     </div>
-                    <div class="col-md-3 pull-left" style="margin-top:50px">
+                    <div class="col-md-3 pull-left visible-lg-block" style="margin-top:50px">
                         <div class="h5">Branislav Kútnik</div>
                         <div class="h5">Weby, stránky, aplikácie</div>
                         <a class="h5">#šijemeNaMieru</a>
                     </div>
-                    <div class="col-md-12" style="margin-top:70px">
+                    <div class="col-md-12 visible-lg-block" style="margin-top:70px">
                         <div class="col-md-3">
                             <div class="col-md-4">
                                 <a href="{{path('info-details')}}">
@@ -60,7 +63,7 @@
                             </div>
                         </div>
                     </div>
-                    <div >
+                    <div class="visible-lg-block">
                         <div class="col-md-12 h3" style="padding-top:50px">
                             <span>Kontakt</span>
                         </div>

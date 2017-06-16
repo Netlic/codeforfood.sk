@@ -372,7 +372,7 @@ a {
     cursor: pointer;
 }
 .what-i-know-to-do-item {
-    height: 170px;
+    height: 200px;
     min-width: 200px;
     /*border-radius: 5px;*/
     /*background-color: white;*/
@@ -382,6 +382,7 @@ a {
     background-position: center top;
     background-color: #aaa;
     color: white;
+    margin-bottom: 30px;
     /*border: 3px solid transparent*/
 }
 .what-i-know-to-do-item::after {
@@ -406,8 +407,8 @@ a {
     /*border-color: white;*/
     border-radius: 25px;
     -moz-transition: all 1s;
-   -o-transition: all 1s;
-   -webkit-transition: all 1s;
+    -o-transition: all 1s;
+    -webkit-transition: all 1s;
     transition: all 1s
 }
 .what-i-know-to-do-item-symbol {
