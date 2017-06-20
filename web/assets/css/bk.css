@@ -340,7 +340,7 @@ a {
     border-left: 40px solid transparent;
     border-right: 40px solid transparent;
     top: 80px;
-    left: -10px;
+    left: 10px;
     -webkit-transform: rotate(-140deg);
     -moz-transform:    rotate(-140deg);
     -ms-transform:     rotate(-140deg);
