@@ -52,10 +52,13 @@
             </div>
         </div>
     </div>
+    
 {% endblock %}
 
 {% block javascripts %}
     <script>
-        $('.test').madHierarchy()
+        $('.test').madHierarchy({
+            style: {"border-radius" : '20px'}
+        });
     </script>
 {% endblock %}
