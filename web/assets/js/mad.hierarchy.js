@@ -15,9 +15,13 @@
         var settings = $.extend({
             borderEffect: true,
             borderEffectDuration: 500,
-            afterBorderAnimation: function() {}
+            nodes: {},
+            afterBorderAnimation: function () {
+                console.log('animation end');
+            }
         }, options);
-        settings.style = Object.assign({}, defaultStyle, settings.style)
+
+        settings.style = Object.assign({}, defaultStyle, settings.style);
 
         /** @var root hierarchy element */
         var madRoot = this;
@@ -29,9 +33,7 @@
         var borderEffectElement = {
             template: '<div class="mad-hierarchy-node-border-effect"></div>',
             getEffect: function () {
-                return $(this.template).css({
-                    'border-radius': settings.style['border-radius']
-                });
+                return $(this.template);
             }
         };
 
@@ -57,14 +59,28 @@
                         'height': '110px'
                     }, 100);
                     if ($effect) {
-                        $bElement.setAnimation(settings.afterBorderAnimation);
+                        $bElement.resetAnimation(settings.afterBorderAnimation);
                     }
                 }).mouseleave(function () {
                     $(this).animate({
                         'width': '100px',
                         'height': '100px'
                     });
+                    $effect.stop().css({
+                        'top': '0px',
+                        'left': '0px'
+                    });
                 });
+            },
+
+            /**
+             * Resets border effect animation
+             * @param {function} onAnimationEnd
+             */
+            resetAnimation: function (onAnimationEnd) {
+                var $effect = $(this.effect);
+                $effect.removeAttr('style');
+                this.setAnimation(onAnimationEnd);
             },
 
             /**
@@ -76,24 +92,28 @@
                 var $effect = $(this.effect);
                 $effect.animate({
                     'right': '0px'
-                }, settings.borderEffectDuration, 
-                    function () {
-                        $effect.animate({
-                            'bottom': '0px'
-                        }, settings.borderEffectDuration, 
-                            function () {
-                                $effect.animate({
-                                    'left': '0px'
-                                }, settings.borderEffectDuration, 
+                }, settings.borderEffectDuration,
+                        function () {
+                            $effect.animate({
+                                'bottom': '0px'
+                            }, settings.borderEffectDuration,
                                     function () {
                                         $effect.animate({
-                                            'top': '0px'
-                                        }, settings.borderEffectDuration, onAnimationEnd);
+                                            'left': '0px'
+                                        }, settings.borderEffectDuration,
+                                                function () {
+                                                    $effect.animate({
+                                                        'top': '0px'
+                                                    }, settings.borderEffectDuration, onAnimationEnd);
+                                                });
                                     });
-                            });
-                    });
+                        });
             },
 
+            /**
+             * Returns border element with effect, if enabled
+             * @returns {@this;@call;setFitToNode|@this;@call;setFitToNode@call;append}
+             */
             createBorder: function () {
                 var $border = this.setFitToNode();
                 if (this.effect) {
@@ -104,6 +124,30 @@
             }
         };
 
+        var nodeParser = {
+            prepareNodes: function (elementToStick, nodes, level) {
+                level = typeof level === 'undefined' ? 0 : parseInt(level);
+                var $nodes = nodes;
+                for (var node in $nodes) {
+                    if (typeof $nodes[node].nodes !== 'undefined') {
+                        this.prepareNodes($nodes[node].element, $nodes[node].nodes, level + 1);
+                    }
+                    $nodes[node].element.addClass('mad-hierarchy-hidden-node')
+                            .attr('data-level', level).attr('data-parent', elementToStick.getSelector());
+
+                }
+
+                elementToStick.hover(function () {
+                    $(this).addClass('bigger-caption');
+                });
+                elementToStick.mouseleave(function () {
+                    $(this).removeClass('bigger-caption');
+                });
+            }
+        };
+
+        nodeParser.prepareNodes(madRoot, settings.nodes);
+
         //applying styles
         this.css(settings.style);
 
@@ -112,8 +156,26 @@
 
         //appending border element in place of original node element
         var $parent = this.parent();
-        $parent.append(borderElement.createBorder()/*.append(this)*/);
+        $parent.append(borderElement.createBorder().append(this));
 
         return this;
+    };
+}(jQuery));
+
+$(function () {
+    $.fn.getSelector = function () {
+        var selector = $(this).prop('tagName').toLowerCase();
+
+        var id = $(this).attr("id");
+        if (id) {
+            selector += "#" + id;
+        }
+
+        var classNames = $(this).attr("class");
+        if (classNames) {
+            selector += "." + $.trim(classNames).replace(/\s/gi, ".");
+        }
+
+        return selector;
     };
 }(jQuery));

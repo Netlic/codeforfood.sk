@@ -44,7 +44,25 @@
     width: 30px;
     height: 30px;
     position: absolute;
-    background-color: grey;
+    background-color: #ddd;
+}
 
-    /*right: 0px;*/
+.mad-hierarchy-hidden-node::before {
+    content: '';
+    position: relative;
+    top: 0;
+    left: 0;
+    display: block;
+    border: 1px solid #ddd;
+    animation-name: example;
+    animation-duration: 1s;
+}
+
+@keyframes example {
+    0% {width: 0%;}
+    100% {width: 100%;}
+}
+
+.bigger-caption {
+    font-size: 25px;
 }

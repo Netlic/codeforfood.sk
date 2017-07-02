@@ -48,17 +48,24 @@
             </div>
             <div class="h1 direcotry-label">Čo pri tom používam</div>
             <div class="detail-item row" style="min-height: 500px">
-                <div class="test"></div>
+                <div class="test">PHP</div>
+                <div class="php56">PHP 5.6</div>
+                <div class="php7">PHP 7</div>
             </div>
         </div>
     </div>
-    
+
 {% endblock %}
 
 {% block javascripts %}
     <script>
         $('.test').madHierarchy({
-            style: {"border-radius" : '20px'}
+            style: {"border-radius": '20px'},
+            borderEffectDuration: 80,
+            nodes: [
+                {'element': $('.php56')},
+                {'element': $('.php7')}
+            ]
         });
     </script>
 {% endblock %}
