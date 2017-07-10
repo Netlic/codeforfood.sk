@@ -12,9 +12,17 @@
             'border-radius': '50%'
         };
 
+        /** object nodes: {element, nodes:{}, distance} */
+        
+        /**
+         * Plugin client settings
+         * @type Object
+         */
         var settings = $.extend({
             borderEffect: true,
             borderEffectDuration: 500,
+            fitContainer: true,
+            nodeDistance: '25px',
             nodes: {},
             afterBorderAnimation: function () {
                 console.log('animation end');
@@ -125,16 +133,22 @@
         };
 
         var nodeParser = {
+            createdNodes: [],
             prepareNodes: function (elementToStick, nodes, level) {
                 level = typeof level === 'undefined' ? 0 : parseInt(level);
                 var $nodes = nodes;
                 for (var node in $nodes) {
-                    if (typeof $nodes[node].nodes !== 'undefined') {
-                        this.prepareNodes($nodes[node].element, $nodes[node].nodes, level + 1);
+                    var $currNode = $nodes[node];
+                    if (typeof $currNode.nodes !== 'undefined') {
+                        this.prepareNodes($currNode.element, $currNode.nodes, level + 1);
                     }
-                    $nodes[node].element.addClass('mad-hierarchy-hidden-node')
-                            .attr('data-level', level).attr('data-parent', elementToStick.getSelector());
-
+                    $currNode.element.addClass('mad-hierarchy-hidden-node')
+                        .attr('data-level', level).attr('data-parent', elementToStick.getSelector());
+                    var $parent = $currNode.element.parent(), 
+                    $createdNode = borderElement.createBorder().append($currNode.element);
+                    this.createdNodes.push($createdNode);
+                    $parent.append($createdNode);
+                    this.setNodePosition(elementToStick, $currNode.distance);
                 }
 
                 elementToStick.hover(function () {
@@ -143,6 +157,17 @@
                 elementToStick.mouseleave(function () {
                     $(this).removeClass('bigger-caption');
                 });
+            },
+            
+            setNodePosition: function(parentNode, distance) {
+                var nodeCount = this.createdNodes.length,
+                current = this.createdNodes[parseInt(nodeCount) - 1],
+                prev = this.createdNodes[parseInt(nodeCount) - 2],
+                currPos = current.position();
+                var $distance = typeof distance !== 'undefined' ? distance : settings.nodeDistance;
+                if (typeof prev === 'undefined') {
+                    current.css({'left': (parseFloat(currPos.left) + parseFloat(current.width()) + parseFloat($distance)) + 'px'});
+                }
             }
         };
 
