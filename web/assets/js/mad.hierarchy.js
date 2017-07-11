@@ -22,7 +22,7 @@
             borderEffect: true,
             borderEffectDuration: 500,
             fitContainer: true,
-            nodeDistance: '25px',
+            nodeDistance: '100px',
             nodes: {},
             afterBorderAnimation: function () {
                 console.log('animation end');
@@ -68,6 +68,7 @@
                     }, 100);
                     if ($effect) {
                         $bElement.resetAnimation(settings.afterBorderAnimation);
+                        
                     }
                 }).mouseleave(function () {
                     $(this).animate({
@@ -132,6 +133,17 @@
             }
         };
 
+        var distanceElement = {
+            create: function (x, y) {
+                return $('<div></div>').css({
+                    'position':'absolute',
+                    'top': x + 'px',
+                    'left': y + 'px',
+                    'border':'1px solid black'
+                });
+            }
+        };
+
         var nodeParser = {
             createdNodes: [],
             prepareNodes: function (elementToStick, nodes, level) {
@@ -150,12 +162,14 @@
                     $parent.append($createdNode);
                     this.setNodePosition(elementToStick, $currNode.distance);
                 }
-
+                var $parser = this;
                 elementToStick.hover(function () {
                     $(this).addClass('bigger-caption');
+                    $parser.resizeBond($(this), 100)
                 });
                 elementToStick.mouseleave(function () {
                     $(this).removeClass('bigger-caption');
+                    $parser.resizeBond($(this), 0)
                 });
             },
             
@@ -168,8 +182,28 @@
                 if (typeof prev === 'undefined') {
                     current.css({'left': (parseFloat(currPos.left) + parseFloat(current.width()) + parseFloat($distance)) + 'px'});
                 }
+                this.drawBond(parentNode, current);
+            },
+            
+            drawBond: function(parentNode, currNode) {
+                var distanceStartTop = parseFloat(parentNode.position().top) + parseFloat(parentNode.height())/2;
+                var distanceStartLeft = parseFloat(parentNode.position().left) + 100;
+                var $distance = distanceElement.create(distanceStartTop, distanceStartLeft);
+                currNode.before($distance);
+                //console.log(distanceStartLeft)
+            },
+            
+            resizeBond: function (node, width) {
+                var relatedNodes = $('div').filter(function () {
+                    return node.getSelector().indexOf($(this).attr('data-parent')) >= 0;
+                });
+                var dists = relatedNodes.parent().prev();
+                dists.animate({
+                    'width': width + 'px'
+                });
             }
         };
+
 
         nodeParser.prepareNodes(madRoot, settings.nodes);
 

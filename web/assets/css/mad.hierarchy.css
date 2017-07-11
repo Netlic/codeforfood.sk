@@ -47,16 +47,30 @@
     background-color: #ddd;
 }
 
-.mad-hierarchy-hidden-node::before {
+/*.mad-hierarchy-hidden-node::after {
     content: '';
     position: relative;
     top: 0;
-    left: 0;
+    left: -100px;
     display: block;
-    border: 1px solid #ddd;
+    border: 2px solid #ddd;
+    border-bottom: none;
     animation-name: example;
     animation-duration: 1s;
-}
+
+}*/
+/*
+.distance-mark::after {
+    content: '';
+    position: relative;
+    top: 0;
+    left: -100px;
+    display: block;
+    border: 2px solid black;
+    border-bottom: none;
+    animation-name: example;
+    animation-duration: 1s;
+}*/
 
 @keyframes example {
     0% {width: 0%;}
