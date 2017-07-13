@@ -12,8 +12,8 @@
             'border-radius': '50%'
         };
 
-        /** object nodes: {element, nodes:{}, distance} */
-        
+        /** object nodes: {element, nodes:{}, distance, visible} */
+
         /**
          * Plugin client settings
          * @type Object
@@ -50,46 +50,44 @@
          * @type object
          */
         var borderElement = {
-            node: madRoot,
+            node: $(),
             template: '<div class="mad-hierarchy-node-border"></div>',
-            effect: settings.borderEffect ? borderEffectElement.getEffect() : false,
+            effectTpl: settings.borderEffect ? borderEffectElement.getEffect() : false,
 
+            /**
+             * Returns border element with or without effect
+             * @returns {mad.hierarchyL#1.$.fn.madHierarchy.borderElement@call;borderElement@call;append|unresolved}
+             */
             setFitToNode: function () {
-                var $bElement = this;
-                var $effect = this.effect;
-                return $(this.template).css({
-                    width: '100px',
-                    height: '100px',
+                var $node = this.node;
+                var $effect = this.effectTpl;
+                var $borderElement = this.borderElement().css({
+                    width: parseFloat($node.width()) + 'px',
+                    height: parseFloat($node.height()) + 'px',
                     'border-radius': settings.style['border-radius']
-                }).mouseenter(function () {
-                    $(this).animate({
-                        'width': '110px',
-                        'height': '110px'
-                    }, 100);
-                    if ($effect) {
-                        $bElement.resetAnimation(settings.afterBorderAnimation);
-                        
-                    }
-                }).mouseleave(function () {
-                    $(this).animate({
-                        'width': '100px',
-                        'height': '100px'
-                    });
-                    $effect.stop().css({
-                        'top': '0px',
-                        'left': '0px'
-                    });
                 });
+                if ($effect) {
+                    return $borderElement.append(this.effectTpl.clone(true, true))
+                }
+                return $borderElement;
+            },
+
+            /**
+             * Function returns basic border template
+             * @returns {unresolved}
+             */
+            borderElement: function () {
+                return $(this.template);
             },
 
             /**
              * Resets border effect animation
              * @param {function} onAnimationEnd
              */
-            resetAnimation: function (onAnimationEnd) {
-                var $effect = $(this.effect);
+            resetAnimation: function (onAnimationEnd, effectElement) {
+                var $effect = effectElement;
                 $effect.removeAttr('style');
-                this.setAnimation(onAnimationEnd);
+                this.setAnimation(onAnimationEnd, $effect);
             },
 
             /**
@@ -97,8 +95,8 @@
              * accepts parameter {function} to execute after animation has ended
              * @param {function} onAnimationEnd
              */
-            setAnimation: function (onAnimationEnd) {
-                var $effect = $(this.effect);
+            setAnimation: function (onAnimationEnd, effectElement) {
+                var $effect = effectElement;
                 $effect.animate({
                     'right': '0px'
                 }, settings.borderEffectDuration,
@@ -119,27 +117,51 @@
                         });
             },
 
+            setBorderHover: function (borderElement) {
+                var $effect = borderElement.find('.mad-hierarchy-node-border-effect');
+                var $bElement = this;
+                var $node = this.node,
+                $width = $node.width(), $height = $node.height()
+                borderElement.mouseenter(function () {
+                    $(this).animate({
+                        'width': (parseFloat($width) + 10) + 'px',
+                        'height': (parseFloat($height) + 10) + 'px'
+                    }, 100);
+
+                    if ($effect.length > 0) {
+                        $bElement.resetAnimation(settings.afterBorderAnimation, $effect);
+                    }
+                }).mouseleave(function () {
+                    $(this).animate({
+                        width: parseFloat($width) + 'px',
+                        height: parseFloat($height) + 'px',
+                    });
+                    $effect.stop().css({
+                        'top': '0px',
+                        'left': '0px'
+                    });
+                });
+                return borderElement;
+            },
+
             /**
              * Returns border element with effect, if enabled
              * @returns {@this;@call;setFitToNode|@this;@call;setFitToNode@call;append}
              */
-            createBorder: function () {
-                var $border = this.setFitToNode();
-                if (this.effect) {
-                    $border = this.setFitToNode().append(this.effect);
-                }
-
-                return $border;
+            createBorder: function (node) {
+                this.node = node;
+                return this.setBorderHover(this.setFitToNode()).append(node);
             }
         };
 
         var distanceElement = {
             create: function (x, y) {
                 return $('<div></div>').css({
-                    'position':'absolute',
+                    'position': 'relative',
                     'top': x + 'px',
                     'left': y + 'px',
-                    'border':'1px solid black'
+                    'border': '1px solid black',
+                    'width': '0px'
                 });
             }
         };
@@ -155,57 +177,56 @@
                         this.prepareNodes($currNode.element, $currNode.nodes, level + 1);
                     }
                     $currNode.element.addClass('mad-hierarchy-hidden-node')
-                        .attr('data-level', level).attr('data-parent', elementToStick.getSelector());
-                    var $parent = $currNode.element.parent(), 
-                    $createdNode = borderElement.createBorder().append($currNode.element);
+                            .attr('data-level', level).attr('data-parent', elementToStick.getSelector());
+                    var $parent = $currNode.element.parent(),
+                            $createdNode = borderElement.createBorder($currNode.element);
                     this.createdNodes.push($createdNode);
                     $parent.append($createdNode);
                     this.setNodePosition(elementToStick, $currNode.distance);
                 }
                 var $parser = this;
-                elementToStick.hover(function () {
+                elementToStick.mouseenter(function () {
                     $(this).addClass('bigger-caption');
-                    $parser.resizeBond($(this), 100)
+                    $parser.resizeBond($(this), 100);
                 });
                 elementToStick.mouseleave(function () {
+                    $(this).finish();
                     $(this).removeClass('bigger-caption');
-                    $parser.resizeBond($(this), 0)
+                    $parser.resizeBond($(this), 0, 0);
                 });
             },
-            
-            setNodePosition: function(parentNode, distance) {
+
+            setNodePosition: function (parentNode, distance) {
+                //console.log(parentNode.width())
                 var nodeCount = this.createdNodes.length,
-                current = this.createdNodes[parseInt(nodeCount) - 1],
-                prev = this.createdNodes[parseInt(nodeCount) - 2],
-                currPos = current.position();
+                        current = this.createdNodes[parseInt(nodeCount) - 1],
+                        prev = this.createdNodes[parseInt(nodeCount) - 2],
+                        currPos = current.position();
                 var $distance = typeof distance !== 'undefined' ? distance : settings.nodeDistance;
                 if (typeof prev === 'undefined') {
-                    current.css({'left': (parseFloat(currPos.left) + parseFloat(current.width()) + parseFloat($distance)) + 'px'});
+                    current.css({'left': (parseFloat(currPos.left) + parseFloat(parentNode.width()) + parseFloat($distance)) + 'px'});
                 }
                 this.drawBond(parentNode, current);
             },
-            
-            drawBond: function(parentNode, currNode) {
-                var distanceStartTop = parseFloat(parentNode.position().top) + parseFloat(parentNode.height())/2;
+
+            drawBond: function (parentNode, currNode) {
+                var distanceStartTop = parseFloat(parentNode.position().top) + parseFloat(parentNode.height()) / 2;
                 var distanceStartLeft = parseFloat(parentNode.position().left) + 100;
                 var $distance = distanceElement.create(distanceStartTop, distanceStartLeft);
                 currNode.before($distance);
-                //console.log(distanceStartLeft)
+                
             },
-            
-            resizeBond: function (node, width) {
+
+            resizeBond: function (node, width, animationSpeed) {
                 var relatedNodes = $('div').filter(function () {
                     return node.getSelector().indexOf($(this).attr('data-parent')) >= 0;
                 });
                 var dists = relatedNodes.parent().prev();
                 dists.animate({
                     'width': width + 'px'
-                });
+                }, animationSpeed);
             }
         };
-
-
-        nodeParser.prepareNodes(madRoot, settings.nodes);
 
         //applying styles
         this.css(settings.style);
@@ -215,7 +236,9 @@
 
         //appending border element in place of original node element
         var $parent = this.parent();
-        $parent.append(borderElement.createBorder().append(this));
+        $parent.append(borderElement.createBorder(this));
+
+        nodeParser.prepareNodes(madRoot, settings.nodes);
 
         return this;
     };
