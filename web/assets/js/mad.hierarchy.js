@@ -21,6 +21,7 @@
         var settings = $.extend({
             borderEffect: true,
             borderEffectDuration: 500,
+            borderSpace: 10,
             fitContainer: true,
             nodeDistance: '100px',
             nodes: {},
@@ -121,13 +122,12 @@
                 var $effect = borderElement.find('.mad-hierarchy-node-border-effect');
                 var $bElement = this;
                 var $node = this.node,
-                $width = $node.width(), $height = $node.height()
+                        $width = $node.width(), $height = $node.height()
                 borderElement.mouseenter(function () {
                     $(this).animate({
-                        'width': (parseFloat($width) + 10) + 'px',
-                        'height': (parseFloat($height) + 10) + 'px'
+                        'width': (parseFloat($width) + settings.borderSpace) + 'px',
+                        'height': (parseFloat($height) + settings.borderSpace) + 'px'
                     }, 100);
-
                     if ($effect.length > 0) {
                         $bElement.resetAnimation(settings.afterBorderAnimation, $effect);
                     }
@@ -146,10 +146,13 @@
 
             /**
              * Returns border element with effect, if enabled
-             * @returns {@this;@call;setFitToNode|@this;@call;setFitToNode@call;append}
+             * @returns {@this;@call;setFitToNode|@this;@call;setFitToNode@call}
              */
             createBorder: function (node) {
                 this.node = node;
+                if (this.node.hasTransparentBackground()) {
+                    this.node.css({'background-color': 'white'})
+                }
                 return this.setBorderHover(this.setFitToNode()).append(node);
             }
         };
@@ -161,12 +164,13 @@
                     'top': x + 'px',
                     'left': y + 'px',
                     'border': '1px solid black',
-                    'width': '0px'
+                    'width': '0px',
+                    'display': 'none'
                 });
             }
         };
 
-        var nodeParser = {
+        var madFinisher = {
             createdNodes: [],
             prepareNodes: function (elementToStick, nodes, level) {
                 level = typeof level === 'undefined' ? 0 : parseInt(level);
@@ -187,7 +191,7 @@
                 var $parser = this;
                 elementToStick.mouseenter(function () {
                     $(this).addClass('bigger-caption');
-                    $parser.resizeBond($(this), 100);
+                    $parser.resizeBond($(this), parseInt(settings.nodeDistance));
                 });
                 elementToStick.mouseleave(function () {
                     $(this).finish();
@@ -197,24 +201,27 @@
             },
 
             setNodePosition: function (parentNode, distance) {
-                //console.log(parentNode.width())
                 var nodeCount = this.createdNodes.length,
                         current = this.createdNodes[parseInt(nodeCount) - 1],
                         prev = this.createdNodes[parseInt(nodeCount) - 2],
                         currPos = current.position();
                 var $distance = typeof distance !== 'undefined' ? distance : settings.nodeDistance;
                 if (typeof prev === 'undefined') {
-                    current.css({'left': (parseFloat(currPos.left) + parseFloat(parentNode.width()) + parseFloat($distance)) + 'px'});
+                    current.css({
+                        'left': (parseFloat(currPos.left) +
+                                parseFloat(parentNode.width()) +
+                                parseFloat($distance)) + 'px',
+                        'top': parseFloat(currPos.top) + ((parseFloat(parentNode.height()) - parseFloat(current.height())) / 2)
+                    });
                 }
                 this.drawBond(parentNode, current);
             },
 
             drawBond: function (parentNode, currNode) {
                 var distanceStartTop = parseFloat(parentNode.position().top) + parseFloat(parentNode.height()) / 2;
-                var distanceStartLeft = parseFloat(parentNode.position().left) + 100;
+                var distanceStartLeft = parseFloat(parentNode.position().left) + parseFloat(parentNode.width()) + settings.borderSpace;
                 var $distance = distanceElement.create(distanceStartTop, distanceStartLeft);
                 currNode.before($distance);
-                
             },
 
             resizeBond: function (node, width, animationSpeed) {
@@ -222,6 +229,7 @@
                     return node.getSelector().indexOf($(this).attr('data-parent')) >= 0;
                 });
                 var dists = relatedNodes.parent().prev();
+                dists.toggle();
                 dists.animate({
                     'width': width + 'px'
                 }, animationSpeed);
@@ -238,7 +246,7 @@
         var $parent = this.parent();
         $parent.append(borderElement.createBorder(this));
 
-        nodeParser.prepareNodes(madRoot, settings.nodes);
+        madFinisher.prepareNodes(madRoot, settings.nodes);
 
         return this;
     };
@@ -259,5 +267,20 @@ $(function () {
         }
 
         return selector;
+    };
+}(jQuery));
+
+$(function () {
+    $.fn.hasTransparentBackground = function () {
+        var bkg = this.css('background-color');
+        var regex = /0/gi, result, indices = [];
+        while ((result = regex.exec(bkg))) {
+            indices.push(result.index);
+        }
+        if (bkg === 'transparent' || (bkg.indexOf('rgba') > 1 &&
+            (indices.length === 4 && indices[3] === 14))) {
+            return true;
+        }
+        return false;
     };
 }(jQuery));
