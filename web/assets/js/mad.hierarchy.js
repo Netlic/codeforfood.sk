@@ -61,16 +61,27 @@
              */
             setFitToNode: function () {
                 var $node = this.node;
-                var $effect = this.effectTpl;
+                var $effectTpl = this.effectTpl;
                 var $borderElement = this.borderElement().css({
                     width: parseFloat($node.width()) + 'px',
                     height: parseFloat($node.height()) + 'px',
-                    'border-radius': settings.style['border-radius']
                 });
-                if ($effect) {
-                    return $borderElement.append(this.effectTpl.clone(true, true))
+                $borderElement = this.setBorderRadius($node, $borderElement);
+                if ($effectTpl) {
+                    return $borderElement.append($effectTpl.clone(true, true));
                 }
                 return $borderElement;
+            },
+
+            setBorderRadius: function (node, borderElement) {
+                var $leftTop = node.css('borderTopLeftRadius'),
+                        $rightTop = node.css('borderTopRightRadius'),
+                        $rightBottom = node.css('borderBottomRightRadius'),
+                        $leftBottom = node.css('borderBottomLeftRadius');
+                borderElement.css({
+                    'border-radius': $leftTop + ' ' + $rightTop + ' ' + $rightBottom + ' ' + $leftBottom
+                });
+                return borderElement;
             },
 
             /**
@@ -122,7 +133,7 @@
                 var $effect = borderElement.find('.mad-hierarchy-node-border-effect');
                 var $bElement = this;
                 var $node = this.node,
-                        $width = $node.width(), $height = $node.height()
+                        $width = $node.width(), $height = $node.height();
                 borderElement.mouseenter(function () {
                     $(this).animate({
                         'width': (parseFloat($width) + settings.borderSpace) + 'px',
@@ -134,7 +145,7 @@
                 }).mouseleave(function () {
                     $(this).animate({
                         width: parseFloat($width) + 'px',
-                        height: parseFloat($height) + 'px',
+                        height: parseFloat($height) + 'px'
                     });
                     $effect.stop().css({
                         'top': '0px',
@@ -151,7 +162,7 @@
             createBorder: function (node) {
                 this.node = node;
                 if (this.node.hasTransparentBackground()) {
-                    this.node.css({'background-color': 'white'})
+                    this.node.css({'background-color': 'white'});
                 }
                 return this.setBorderHover(this.setFitToNode()).append(node);
             }
@@ -277,8 +288,8 @@ $(function () {
         while ((result = regex.exec(bkg))) {
             indices.push(result.index);
         }
-        if (bkg === 'transparent' || (bkg.indexOf('rgba') > 1 &&
-            (indices.length === 4 && indices[3] === 14))) {
+        if (bkg === 'transparent' || (bkg.indexOf('rgba') >= 0 &&
+                (indices.length === 4 && indices[3] === 14))) {
             return true;
         }
         return false;
