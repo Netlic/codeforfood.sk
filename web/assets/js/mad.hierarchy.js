@@ -224,6 +224,8 @@
                                 parseFloat($distance)) + 'px',
                         'top': parseFloat(currPos.top) + ((parseFloat(parentNode.height()) - parseFloat(current.height())) / 2)
                     });
+                } else {
+                    
                 }
                 this.drawBond(parentNode, current);
             },
@@ -234,6 +236,8 @@
                 var $distance = distanceElement.create(distanceStartTop, distanceStartLeft);
                 currNode.before($distance);
             },
+            
+            
 
             resizeBond: function (node, width, animationSpeed) {
                 var relatedNodes = $('div').filter(function () {
