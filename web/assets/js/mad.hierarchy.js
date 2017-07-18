@@ -183,20 +183,30 @@
 
         function AutoPosition () {
             this.autoPosition = 'left',
-            this.autoPositions = ['left', 'bottom', 'right', 'top'],
+            this.autoPositions = ['left', 'bottom', 'right', 'top'];
             this.parent = '',
             this.current = '',
+            this.lr = ['left', 'right'];
             this.top = function () {
-                var lr = ['left', 'right'];
-                if (lr.indexOf(this.autoPosition) >= 0) {
+                if (this.lr.indexOf(this.autoPosition) >= 0) {
                     return parseFloat(this.currPos.top) + 
-                   ((parseFloat(this.parent.height()) - 
-                        parseFloat(this.current.height())) / 2)
+                        ((parseFloat(this.parent.height()) - 
+                        parseFloat(this.current.height())) / 2);
                 }
+                return (parseFloat(this.currPos.top) +
+                            parseFloat(this.parent.height()) +
+                            parseFloat(this.distance));
             },
 
             this.left = function () {
-                return '';
+                if (this.lr.indexOf(this.autoPosition) >= 0) {
+                    return (parseFloat(this.currPos.left) +
+                            parseFloat(this.parent.width()) +
+                            parseFloat(this.distance));
+                }
+                return parseFloat(this.currPos.left) + 
+                        ((parseFloat(this.parent.width()) - 
+                        parseFloat(this.current.width())) / 2);
             },
 
             this.getPosition = function () {
@@ -259,26 +269,15 @@
 
             setNodePosition: function (parentNode, distance) {
                 var nodeCount = this.createdNodes.length,
-                        current = this.createdNodes[parseInt(nodeCount) - 1],
-                        prev = this.createdNodes[parseInt(nodeCount) - 2],
-                        currPos = current.position();
-                //var $distance = typeof distance !== 'undefined' ? distance : settings.nodeDistance;
+                    current = this.createdNodes[parseInt(nodeCount) - 1];
                 this.autoPosition.distance = typeof distance !== 'undefined' ? distance : settings.nodeDistance;
                 this.autoPosition.relatedNodes(parentNode, current);
-                console.log(this.autoPosition.distance)
                 current.css({
-                    'top': this.autoPosition.top()
+                    'top': this.autoPosition.top(),
+                    'left': this.autoPosition.left()
                 });
-                /*if (typeof prev === 'undefined') {
-                    current.css({
-                        'left': (parseFloat(currPos.left) +
-                                parseFloat(parentNode.width()) +
-                                parseFloat($distance)) + 'px',
-                        'top': parseFloat(currPos.top) + ((parseFloat(parentNode.height()) - parseFloat(current.height())) / 2)
-                    });
-                } else {
-                    
-                }*/
+                this.autoPosition.setPosition(this.autoPosition.getNextPosition());
+
                 this.drawBond(parentNode, current);
             },
 
