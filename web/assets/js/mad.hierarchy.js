@@ -12,7 +12,7 @@
             'border-radius': '50%'
         };
 
-        /** object nodes: {element, nodes:{}, distance, visible} */
+        /** object nodes: {element, nodes:{}, distance, visible, position{}} */
 
         /**
          * Plugin client settings
@@ -181,7 +181,53 @@
             }
         };
 
+        function AutoPosition () {
+            this.autoPosition = 'left',
+            this.autoPositions = ['left', 'bottom', 'right', 'top'],
+            this.parent = '',
+            this.current = '',
+            this.top = function () {
+                var lr = ['left', 'right'];
+                if (lr.indexOf(this.autoPosition) >= 0) {
+                    return parseFloat(this.currPos.top) + 
+                   ((parseFloat(this.parent.height()) - 
+                        parseFloat(this.current.height())) / 2)
+                }
+            },
+
+            this.left = function () {
+                return '';
+            },
+
+            this.getPosition = function () {
+                return this.autoPosition;
+            },
+
+            this.setPosition = function (pos) {
+                this.autoPosition = pos;
+            },
+
+            this.getNextPosition = function () {
+                var index = this.autoPositions.indexOf(this.autoPosition);
+                if (index < 0) {
+                    return this.autoPositions[0];
+                }
+                if ((parseInt(index) + 1) === this.autoPositions.length) {
+                    return this.autoPositions[0];
+                }
+                return this.autoPositions[parseInt(index) + 1];
+            };
+            
+            this.relatedNodes = function (parent, current) {
+                this.parent = parent;
+                this.current = current;
+                this.currPos = current.position();
+            };
+        };
+
+
         var madFinisher = {
+            autoPosition: new AutoPosition(),
             createdNodes: [],
             prepareNodes: function (elementToStick, nodes, level) {
                 level = typeof level === 'undefined' ? 0 : parseInt(level);
@@ -216,8 +262,14 @@
                         current = this.createdNodes[parseInt(nodeCount) - 1],
                         prev = this.createdNodes[parseInt(nodeCount) - 2],
                         currPos = current.position();
-                var $distance = typeof distance !== 'undefined' ? distance : settings.nodeDistance;
-                if (typeof prev === 'undefined') {
+                //var $distance = typeof distance !== 'undefined' ? distance : settings.nodeDistance;
+                this.autoPosition.distance = typeof distance !== 'undefined' ? distance : settings.nodeDistance;
+                this.autoPosition.relatedNodes(parentNode, current);
+                console.log(this.autoPosition.distance)
+                current.css({
+                    'top': this.autoPosition.top()
+                });
+                /*if (typeof prev === 'undefined') {
                     current.css({
                         'left': (parseFloat(currPos.left) +
                                 parseFloat(parentNode.width()) +
@@ -226,7 +278,7 @@
                     });
                 } else {
                     
-                }
+                }*/
                 this.drawBond(parentNode, current);
             },
 
@@ -236,8 +288,6 @@
                 var $distance = distanceElement.create(distanceStartTop, distanceStartLeft);
                 currNode.before($distance);
             },
-            
-            
 
             resizeBond: function (node, width, animationSpeed) {
                 var relatedNodes = $('div').filter(function () {
