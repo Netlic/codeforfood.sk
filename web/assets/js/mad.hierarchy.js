@@ -168,6 +168,10 @@
             }
         };
 
+        /**
+         * Object that graphically represents bond between nodes
+         * @type object
+         */
         var distanceElement = {
             create: function (x, y) {
                 return $('<div></div>').css({
@@ -181,6 +185,9 @@
             }
         };
 
+        /**
+         * Object for count autosizing values for node positioning
+         */
         function AutoPosition () {
             this.autoPosition = 'left',
             this.autoPositions = ['left', 'bottom', 'right', 'top'];
@@ -309,9 +316,9 @@
         //appending border element in place of original node element
         var $parent = this.parent();
         $parent.append(borderElement.createBorder(this));
-
+console.log(this.position().top)
         madFinisher.prepareNodes(madRoot, settings.nodes);
-
+console.log(this.position().top)
         return this;
     };
 }(jQuery));
