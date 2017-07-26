@@ -62,9 +62,12 @@
             setFitToNode: function () {
                 var $node = this.node;
                 var $effectTpl = this.effectTpl;
+                var $position = $node.position();
                 var $borderElement = this.borderElement().css({
                     width: parseFloat($node.width()) + 'px',
                     height: parseFloat($node.height()) + 'px',
+                    top: $position.top,
+                    left: $position.left
                 });
                 $borderElement = this.setBorderRadius($node, $borderElement);
                 if ($effectTpl) {
@@ -173,14 +176,17 @@
          * @type object
          */
         var distanceElement = {
-            create: function (x, y) {
+            create: function (x, y, degree) {
                 return $('<div></div>').css({
                     'position': 'relative',
                     'top': x + 'px',
                     'left': y + 'px',
                     'border': '1px solid black',
                     'width': '0px',
-                    'display': 'none'
+                    'display': 'none',
+                    '-ms-transform': 'rotate(' + degree + 'deg)', /* IE 9 */
+                    '-webkit-transform': 'rotate(' + degree + 'deg)', /* Safari */
+                    'transform': 'rotate(' + degree + 'deg)',
                 });
             }
         };
@@ -189,59 +195,84 @@
          * Object for count autosizing values for node positioning
          */
         function AutoPosition () {
+        function AutoPosition() {
             this.autoPosition = 'left',
-            this.autoPositions = ['left', 'bottom', 'right', 'top'];
+                    this.autoPositions = ['left', 'bottom', 'right', 'top'];
             this.parent = '',
-            this.current = '',
-            this.lr = ['left', 'right'];
+                    this.current = '',
+                    this.lr = ['left', 'right'];
             this.top = function () {
                 if (this.lr.indexOf(this.autoPosition) >= 0) {
-                    return parseFloat(this.currPos.top) + 
-                        ((parseFloat(this.parent.height()) - 
-                        parseFloat(this.current.height())) / 2);
+                    return parseFloat(this.currPos.top) +
+                            ((parseFloat(this.parent.height()) -
+                                    parseFloat(this.current.height())) / 2);
                 }
                 return (parseFloat(this.currPos.top) +
-                            parseFloat(this.parent.height()) +
-                            parseFloat(this.distance));
+                        parseFloat(this.parent.height()) +
+                        parseFloat(this.distance));
             },
+                    this.left = function () {
+                        if (this.lr.indexOf(this.autoPosition) >= 0) {
+                            return (parseFloat(this.currPos.left) +
+                                    parseFloat(this.parent.width()) +
+                                    parseFloat(this.distance));
+                        }
+                        return parseFloat(this.currPos.left) +
+                                ((parseFloat(this.parent.width()) -
+                                        parseFloat(this.current.width())) / 2);
+                    },
+                    this.getPosition = function () {
+                        return this.autoPosition;
+                    },
+                    this.setPosition = function (pos) {
+                        this.autoPosition = pos;
+                    },
+                    this.getNextPosition = function () {
+                        var index = this.autoPositions.indexOf(this.autoPosition);
+                        if (index < 0) {
+                            return this.autoPositions[0];
+                        }
+                        if ((parseInt(index) + 1) === this.autoPositions.length) {
+                            return this.autoPositions[0];
+                        }
+                        return this.autoPositions[parseInt(index) + 1];
+                    };
 
-            this.left = function () {
-                if (this.lr.indexOf(this.autoPosition) >= 0) {
-                    return (parseFloat(this.currPos.left) +
-                            parseFloat(this.parent.width()) +
-                            parseFloat(this.distance));
-                }
-                return parseFloat(this.currPos.left) + 
-                        ((parseFloat(this.parent.width()) - 
-                        parseFloat(this.current.width())) / 2);
-            },
-
-            this.getPosition = function () {
-                return this.autoPosition;
-            },
-
-            this.setPosition = function (pos) {
-                this.autoPosition = pos;
-            },
-
-            this.getNextPosition = function () {
-                var index = this.autoPositions.indexOf(this.autoPosition);
-                if (index < 0) {
-                    return this.autoPositions[0];
-                }
-                if ((parseInt(index) + 1) === this.autoPositions.length) {
-                    return this.autoPositions[0];
-                }
-                return this.autoPositions[parseInt(index) + 1];
-            };
-            
             this.relatedNodes = function (parent, current) {
                 this.parent = parent;
                 this.current = current;
                 this.currPos = current.position();
             };
-        };
 
+            this.getDegree = function () {
+                return this.positions().degree;
+            };
+
+            this.bondStart = function () {
+                return this.positions().bond;
+            };
+            
+            this.positions = function () {
+                switch (this.getPosition()) {
+                    case 'left' :
+                    {
+                        return {degree: 0};
+                    }
+                    case 'bottom' :
+                    {
+                        return {degree: -90}//-90;
+                    }
+                    case 'right' :
+                    {
+                        return {degree: 180}//180;
+                    }
+                    case 'top' :
+                    {
+                        return {degree: 90}//90;
+                    }
+                }
+            };
+        }
 
         var madFinisher = {
             autoPosition: new AutoPosition(),
@@ -276,22 +307,24 @@
 
             setNodePosition: function (parentNode, distance) {
                 var nodeCount = this.createdNodes.length,
-                    current = this.createdNodes[parseInt(nodeCount) - 1];
+                        current = this.createdNodes[parseInt(nodeCount) - 1];
                 this.autoPosition.distance = typeof distance !== 'undefined' ? distance : settings.nodeDistance;
                 this.autoPosition.relatedNodes(parentNode, current);
                 current.css({
                     'top': this.autoPosition.top(),
                     'left': this.autoPosition.left()
                 });
-                this.autoPosition.setPosition(this.autoPosition.getNextPosition());
 
                 this.drawBond(parentNode, current);
+
+                this.autoPosition.setPosition(this.autoPosition.getNextPosition());
             },
 
             drawBond: function (parentNode, currNode) {
                 var distanceStartTop = parseFloat(parentNode.position().top) + parseFloat(parentNode.height()) / 2;
                 var distanceStartLeft = parseFloat(parentNode.position().left) + parseFloat(parentNode.width()) + settings.borderSpace;
-                var $distance = distanceElement.create(distanceStartTop, distanceStartLeft);
+                var degree = this.autoPosition.getDegree();
+                var $distance = distanceElement.create(distanceStartTop, distanceStartLeft, degree);
                 currNode.before($distance);
             },
 
@@ -312,7 +345,6 @@
 
         //adding classes
         this.addClass('mad-hierarchy mad-hierarchy-node');
-
         //appending border element in place of original node element
         var $parent = this.parent();
         $parent.append(borderElement.createBorder(this));
