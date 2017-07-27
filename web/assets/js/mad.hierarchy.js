@@ -29,7 +29,6 @@
                 console.log('animation end');
             }
         }, options);
-
         settings.style = Object.assign({}, defaultStyle, settings.style);
 
         /** @var root hierarchy element */
@@ -75,7 +74,6 @@
                 }
                 return $borderElement;
             },
-
             setBorderRadius: function (node, borderElement) {
                 var $leftTop = node.css('borderTopLeftRadius'),
                         $rightTop = node.css('borderTopRightRadius'),
@@ -131,7 +129,6 @@
                                     });
                         });
             },
-
             setBorderHover: function (borderElement) {
                 var $effect = borderElement.find('.mad-hierarchy-node-border-effect');
                 var $bElement = this;
@@ -194,13 +191,12 @@
         /**
          * Object for count autosizing values for node positioning
          */
-        function AutoPosition () {
         function AutoPosition() {
-            this.autoPosition = 'left',
-                    this.autoPositions = ['left', 'bottom', 'right', 'top'];
-            this.parent = '',
-                    this.current = '',
-                    this.lr = ['left', 'right'];
+            this.autoPosition = 'left';
+            this.autoPositions = ['left', 'bottom', 'right', 'top'];
+            this.parent = '';
+            this.current = '';
+            this.lr = ['left', 'right'];
             this.top = function () {
                 if (this.lr.indexOf(this.autoPosition) >= 0) {
                     return parseFloat(this.currPos.top) +
@@ -210,33 +206,37 @@
                 return (parseFloat(this.currPos.top) +
                         parseFloat(this.parent.height()) +
                         parseFloat(this.distance));
-            },
-                    this.left = function () {
-                        if (this.lr.indexOf(this.autoPosition) >= 0) {
-                            return (parseFloat(this.currPos.left) +
-                                    parseFloat(this.parent.width()) +
-                                    parseFloat(this.distance));
-                        }
-                        return parseFloat(this.currPos.left) +
-                                ((parseFloat(this.parent.width()) -
-                                        parseFloat(this.current.width())) / 2);
-                    },
-                    this.getPosition = function () {
-                        return this.autoPosition;
-                    },
-                    this.setPosition = function (pos) {
-                        this.autoPosition = pos;
-                    },
-                    this.getNextPosition = function () {
-                        var index = this.autoPositions.indexOf(this.autoPosition);
-                        if (index < 0) {
-                            return this.autoPositions[0];
-                        }
-                        if ((parseInt(index) + 1) === this.autoPositions.length) {
-                            return this.autoPositions[0];
-                        }
-                        return this.autoPositions[parseInt(index) + 1];
-                    };
+            };
+
+            this.left = function () {
+                if (this.lr.indexOf(this.autoPosition) >= 0) {
+                    return (parseFloat(this.currPos.left) +
+                            parseFloat(this.parent.width()) +
+                            parseFloat(this.distance));
+                }
+                return parseFloat(this.currPos.left) +
+                        ((parseFloat(this.parent.width()) -
+                                parseFloat(this.current.width())) / 2);
+            };
+
+            this.getPosition = function () {
+                return this.autoPosition;
+            };
+
+            this.setPosition = function (pos) {
+                this.autoPosition = pos;
+            };
+
+            this.getNextPosition = function () {
+                var index = this.autoPositions.indexOf(this.autoPosition);
+                if (index < 0) {
+                    return this.autoPositions[0];
+                }
+                if ((parseInt(index) + 1) === this.autoPositions.length) {
+                    return this.autoPositions[0];
+                }
+                return this.autoPositions[parseInt(index) + 1];
+            };
 
             this.relatedNodes = function (parent, current) {
                 this.parent = parent;
@@ -251,7 +251,7 @@
             this.bondStart = function () {
                 return this.positions().bond;
             };
-            
+
             this.positions = function () {
                 switch (this.getPosition()) {
                     case 'left' :
@@ -304,7 +304,6 @@
                     $parser.resizeBond($(this), 0, 0);
                 });
             },
-
             setNodePosition: function (parentNode, distance) {
                 var nodeCount = this.createdNodes.length,
                         current = this.createdNodes[parseInt(nodeCount) - 1];
@@ -314,12 +313,9 @@
                     'top': this.autoPosition.top(),
                     'left': this.autoPosition.left()
                 });
-
                 this.drawBond(parentNode, current);
-
                 this.autoPosition.setPosition(this.autoPosition.getNextPosition());
             },
-
             drawBond: function (parentNode, currNode) {
                 var distanceStartTop = parseFloat(parentNode.position().top) + parseFloat(parentNode.height()) / 2;
                 var distanceStartLeft = parseFloat(parentNode.position().left) + parseFloat(parentNode.width()) + settings.borderSpace;
@@ -327,7 +323,6 @@
                 var $distance = distanceElement.create(distanceStartTop, distanceStartLeft, degree);
                 currNode.before($distance);
             },
-
             resizeBond: function (node, width, animationSpeed) {
                 var relatedNodes = $('div').filter(function () {
                     return node.getSelector().indexOf($(this).attr('data-parent')) >= 0;
@@ -339,26 +334,22 @@
                 }, animationSpeed);
             }
         };
-
         //applying styles
         this.css(settings.style);
-
         //adding classes
         this.addClass('mad-hierarchy mad-hierarchy-node');
         //appending border element in place of original node element
         var $parent = this.parent();
         $parent.append(borderElement.createBorder(this));
-console.log(this.position().top)
+        console.log(this.position().top)
         madFinisher.prepareNodes(madRoot, settings.nodes);
-console.log(this.position().top)
+        console.log(this.position().top)
         return this;
     };
 }(jQuery));
-
 $(function () {
     $.fn.getSelector = function () {
         var selector = $(this).prop('tagName').toLowerCase();
-
         var id = $(this).attr("id");
         if (id) {
             selector += "#" + id;
@@ -371,8 +362,8 @@ $(function () {
 
         return selector;
     };
-}(jQuery));
-
+}(
+        jQuery));
 $(function () {
     $.fn.hasTransparentBackground = function () {
         var bkg = this.css('background-color');
