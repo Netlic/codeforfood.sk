@@ -188,6 +188,50 @@
             }
         };
 
+        var PositionCalculator = {
+            nodes: [],
+            current: function () {
+                var currNode = this.nodes[parseInt(this.nodes.length) - 1];
+                return {
+                    top: function () {
+                        return currNode.borderedNode.position().top;
+                    },
+                    left: function () {
+                        return currNode.borderedNode.position().left;
+                    }
+                };
+            },
+            calculate: function (settings) {
+                var result = 0;
+                if (typeof settings !== 'undefined') {
+                    for (var i = 0; i < settings.length; i++) {
+                        switch (settings[i]) {
+                            case 'ct':
+                            {
+                                result += parseFloat(this.current().top());
+                                break;
+                            }
+                            case 'cl':
+                            {
+                                result += parseFloat(this.current().left());
+                                break;
+                            }
+                            case 'ph':
+                            {
+                                var mark = settings[i - 1];
+                                if (typeof mark !== 'undefined' && mark === '-') {
+                                    result -= parseFloat(this.parent.height());
+                                }
+                                result += parseFloat(this.parent.height());
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                return result;
+            }
+        };
         /**
          * Object for count autosizing values for node positioning
          */
@@ -198,8 +242,9 @@
             this.current = '';
             this.lr = ['left', 'right'];
             this.top = function () {
+                console.log(PositionCalculator.calculate(['ct', 'ph']))
                 if (this.lr.indexOf(this.autoPosition) >= 0) {
-                    return parseFloat(this.currPos.top) +
+                    return PositionCalculator.calculate(['ct']) +//parseFloat(this.currPos.top) +
                             ((parseFloat(this.parent.height()) -
                                     parseFloat(this.current.height())) / 2);
                 }
@@ -248,6 +293,10 @@
                 return this.positions().degree;
             };
 
+            this.getNodePositions = function () {
+
+            };
+
             this.bondStart = function () {
                 return this.positions().bond;
             };
@@ -256,7 +305,9 @@
                 switch (this.getPosition()) {
                     case 'left' :
                     {
-                        return {degree: 0};
+                        return {
+                            degree: 0,
+                        };
                     }
                     case 'bottom' :
                     {
@@ -291,6 +342,11 @@
                             $createdNode = borderElement.createBorder($currNode.element);
                     this.createdNodes.push($createdNode);
                     $parent.append($createdNode);
+                    PositionCalculator.nodes.push({
+                        'originalNode': $currNode,
+                        'borderedNode': $createdNode
+                    });
+                    PositionCalculator.parent = elementToStick;
                     this.setNodePosition(elementToStick, $currNode.distance);
                 }
                 var $parser = this;
@@ -308,6 +364,7 @@
                 var nodeCount = this.createdNodes.length,
                         current = this.createdNodes[parseInt(nodeCount) - 1];
                 this.autoPosition.distance = typeof distance !== 'undefined' ? distance : settings.nodeDistance;
+                //console.log(current.position().top)
                 this.autoPosition.relatedNodes(parentNode, current);
                 current.css({
                     'top': this.autoPosition.top(),
@@ -315,6 +372,7 @@
                 });
                 this.drawBond(parentNode, current);
                 this.autoPosition.setPosition(this.autoPosition.getNextPosition());
+                //console.log(PositionCalculator.calculate(['ct']))
             },
             drawBond: function (parentNode, currNode) {
                 var distanceStartTop = parseFloat(parentNode.position().top) + parseFloat(parentNode.height()) / 2;
@@ -341,9 +399,8 @@
         //appending border element in place of original node element
         var $parent = this.parent();
         $parent.append(borderElement.createBorder(this));
-        console.log(this.position().top)
         madFinisher.prepareNodes(madRoot, settings.nodes);
-        console.log(this.position().top)
+
         return this;
     };
 }(jQuery));
