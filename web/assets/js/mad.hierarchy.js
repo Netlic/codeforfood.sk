@@ -190,6 +190,8 @@
 
         var PositionCalculator = {
             nodes: [],
+            settings: {},
+
             current: function () {
                 var currNode = this.nodes[parseInt(this.nodes.length) - 1];
                 return {
@@ -198,40 +200,65 @@
                     },
                     left: function () {
                         return currNode.borderedNode.position().left;
+                    },
+                    height: function () {
+                        return currNode.borderedNode.height();
                     }
                 };
             },
+
             calculate: function (settings) {
                 var result = 0;
                 if (typeof settings !== 'undefined') {
-                    for (var i = 0; i < settings.length; i++) {
-                        switch (settings[i]) {
+                    for (var key in settings) {
+                        var value = 0;
+                        switch (key) {
                             case 'ct':
                             {
-                                result += parseFloat(this.current().top());
+                                value = parseFloat(this.current().top());
                                 break;
                             }
                             case 'cl':
                             {
-                                result += parseFloat(this.current().left());
+                                value = parseFloat(this.current().left());
                                 break;
                             }
                             case 'ph':
                             {
-                                var mark = settings[i - 1];
-                                if (typeof mark !== 'undefined' && mark === '-') {
-                                    result -= parseFloat(this.parent.height());
-                                }
-                                result += parseFloat(this.parent.height());
+                                value = parseFloat(this.parent.height());
+                                break;
+                            }
+                            case 'ch': 
+                            {
+                                value = parseFloat(this.current().height());
+                                break;
+                            }
+                            case 'expression': 
+                            {
+                                value = this.calculate(settings[key]);
                                 break;
                             }
                         }
+                        result += this.getFromSettings(settings, key, value);
                     }
-                }
+                };
 
                 return result;
+            },
+
+            getFromSettings: function (settings, key, value) {
+                var part = settings[key];
+                if (typeof part.div !== 'undefined') {
+                    value = parseFloat(value) / parseFloat(part.div);
+                }
+                if (part.adder === '+') {
+                    return value;
+                }
+
+                return -1 * parseFloat(value);
             }
         };
+        
         /**
          * Object for count autosizing values for node positioning
          */
@@ -240,13 +267,59 @@
             this.autoPositions = ['left', 'bottom', 'right', 'top'];
             this.parent = '';
             this.current = '';
-            this.lr = ['left', 'right'];
-            this.top = function () {
-                console.log(PositionCalculator.calculate(['ct', 'ph']))
+            this.calculatedPositions = '';
+            this.autoNodePosition = function () {
+                var lr = ['left', 'right'];
+                return {    
+                    top: function () {
+                        if (lr.indexOf(this.autoPosition) >= 0) {
+                            var result = PositionCalculator.calculate({
+                                'ct': {
+                                    'adder': '+'
+                                },
+                                'expression': {
+                                    'ph': {
+                                        'adder': '+'
+                                    },
+                                    'ch': {
+                                        'adder': '-',
+                                    },
+                                    'adder': '+',
+                                    'div': 2
+                                }
+                            });
+
+                            return result;
+                        }
+                        return (parseFloat(this.currPos.top) +
+                            parseFloat(this.parent.height()) +
+                            parseFloat(this.distance));
+                        
+                    },
+                    left: function () {
+                        return;
+                    }
+                };
+            };
+            this.top = function () { 
                 if (this.lr.indexOf(this.autoPosition) >= 0) {
-                    return PositionCalculator.calculate(['ct']) +//parseFloat(this.currPos.top) +
-                            ((parseFloat(this.parent.height()) -
-                                    parseFloat(this.current.height())) / 2);
+                    var result = PositionCalculator.calculate({
+                        'ct': {
+                            'adder': '+'
+                        },
+                        'expression': {
+                            'ph': {
+                                'adder': '+'
+                            },
+                            'ch': {
+                                'adder': '-',
+                            },
+                            'adder': '+',
+                            'div': 2
+                        }
+                    });
+
+                    return result;
                 }
                 return (parseFloat(this.currPos.top) +
                         parseFloat(this.parent.height()) +
@@ -264,14 +337,26 @@
                                 parseFloat(this.current.width())) / 2);
             };
 
+            /**
+             * function returns current autoposition representation eq. top, left, bottom, right 
+             * @returns {@param;String}
+             */
             this.getPosition = function () {
                 return this.autoPosition;
             };
 
+            /**
+             * Function to set current autoposition representation
+             * @param {string} pos
+             */
             this.setPosition = function (pos) {
                 this.autoPosition = pos;
             };
 
+            /**
+             * Returns next autoposition value
+             * @returns {String}
+             */
             this.getNextPosition = function () {
                 var index = this.autoPositions.indexOf(this.autoPosition);
                 if (index < 0) {
@@ -289,37 +374,55 @@
                 this.currPos = current.position();
             };
 
+            /**
+             * Gets degree for autopositioned node to draw bond
+             * @returns {mad.hierarchyL#1.$.fn.madHierarchy.AutoPosition.positions.degree}
+             */
             this.getDegree = function () {
                 return this.positions().degree;
             };
 
+            /**
+             * Gets position for nodes in autoposition 
+             * @returns {undefined}
+             */
             this.getNodePositions = function () {
-
+                console.log(this.positions())
+                return this.positions().node;
             };
 
+            /**
+             * Gets positions for bond between nodes to draw 
+             * @returns {mad.hierarchyL#1.$.fn.madHierarchy.AutoPosition.positions.bond}
+             */
             this.bondStart = function () {
                 return this.positions().bond;
             };
 
+            /**
+             * Gets general positions, degrees for hierarchy to draw
+             * @returns {mad.hierarchyL#1.$.fn.madHierarchy.AutoPosition.positions.mad.hierarchyAnonym$3|mad.hierarchyL#1.$.fn.madHierarchy.AutoPosition.positions.mad.hierarchyAnonym$2|mad.hierarchyL#1.$.fn.madHierarchy.AutoPosition.positions.mad.hierarchyAnonym$1|mad.hierarchyL#1.$.fn.madHierarchy.AutoPosition.positions.mad.hierarchyAnonym$4}
+             */
             this.positions = function () {
                 switch (this.getPosition()) {
                     case 'left' :
                     {
                         return {
                             degree: 0,
+                            node: this.autoNodePosition()
                         };
                     }
                     case 'bottom' :
                     {
-                        return {degree: -90}//-90;
+                        return {degree: -90};//-90;
                     }
                     case 'right' :
                     {
-                        return {degree: 180}//180;
+                        return {degree: 180};//180;
                     }
                     case 'top' :
                     {
-                        return {degree: 90}//90;
+                        return {degree: 90};//90;
                     }
                 }
             };
@@ -364,15 +467,13 @@
                 var nodeCount = this.createdNodes.length,
                         current = this.createdNodes[parseInt(nodeCount) - 1];
                 this.autoPosition.distance = typeof distance !== 'undefined' ? distance : settings.nodeDistance;
-                //console.log(current.position().top)
                 this.autoPosition.relatedNodes(parentNode, current);
                 current.css({
-                    'top': this.autoPosition.top(),
+                    'top': this.autoPosition.getNodePositions().top(),
                     'left': this.autoPosition.left()
                 });
                 this.drawBond(parentNode, current);
                 this.autoPosition.setPosition(this.autoPosition.getNextPosition());
-                //console.log(PositionCalculator.calculate(['ct']))
             },
             drawBond: function (parentNode, currNode) {
                 var distanceStartTop = parseFloat(parentNode.position().top) + parseFloat(parentNode.height()) / 2;
