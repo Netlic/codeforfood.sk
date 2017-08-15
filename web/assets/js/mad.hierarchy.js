@@ -96,6 +96,7 @@
             /**
              * Resets border effect animation
              * @param {function} onAnimationEnd
+             * @param {type} effectElement
              */
             resetAnimation: function (onAnimationEnd, effectElement) {
                 var $effect = effectElement;
@@ -107,6 +108,7 @@
              * Function that sets border effect animation
              * accepts parameter {function} to execute after animation has ended
              * @param {function} onAnimationEnd
+             * @param {type} effectElement
              */
             setAnimation: function (onAnimationEnd, effectElement) {
                 var $effect = effectElement;
@@ -157,6 +159,7 @@
 
             /**
              * Returns border element with effect, if enabled
+             * @param {type} node
              * @returns {@this;@call;setFitToNode|@this;@call;setFitToNode@call}
              */
             createBorder: function (node) {
@@ -183,7 +186,7 @@
                     'display': 'none',
                     '-ms-transform': 'rotate(' + degree + 'deg)', /* IE 9 */
                     '-webkit-transform': 'rotate(' + degree + 'deg)', /* Safari */
-                    'transform': 'rotate(' + degree + 'deg)',
+                    'transform': 'rotate(' + degree + 'deg)'
                 });
             }
         };
@@ -233,15 +236,25 @@
                                 value = parseFloat(this.current().left());
                                 break;
                             }
+                            case 'ch':
+                            {
+                                value = parseFloat(this.current().height());
+                                break;
+                            }
                             case 'ph':
                             {
                                 value = parseFloat(this.parent.height());
                                 break;
                             }
-                            case 'ch':
+                            case 'pt':
                             {
-                                value = parseFloat(this.current().height());
+                                value = parseFloat(this.parent.position().top);
                                 break;
+                            }
+                            case 'pl':
+                            {
+                                value = parseFloat(this.parent.position().top);
+                                break
                             }
                             case 'pw':
                             {
@@ -261,6 +274,11 @@
                             {
                                 value = this.calculate(settings[key]);
                                 break;
+                            }
+                            case 'custom':
+                            {
+                                value = parseFloat(settings[key].value);
+                                break
                             }
                         }
                         result += this.getFromSettings(settings, key, value);
@@ -289,17 +307,33 @@
         function AutoPosition() {
             this.autoPosition = 'left';
             this.autoPositions = ['left', 'bottom', 'right', 'top'];
-            this.parent = '';
-            this.current = '';
-            this.calculatedPositions = '';
-            
+
             this.autoBondPosition = function () {
                 return {
                     'top': function () {
-                        parseFloat(parentNode.position().top) + parseFloat(parentNode.height()) / 2;
+                        return PositionCalculator.calculate({
+                            'pt': {
+                                'adder': '+'
+                            },
+                            'ph': {
+                                'adder': '+',
+                                'div': 2
+                            }
+                        });
                     },
                     'left': function () {
-
+                        return PositionCalculator.calculate({
+                            'pl': {
+                                'adder': '+'
+                            },
+                            'pw': {
+                                'adder': '+'
+                            },
+                            'custom': {
+                                'adder': '+',
+                                'value': settings.borderSpace
+                            }
+                        });
                     }      
                 };
             };
@@ -358,11 +392,11 @@
                         
                         return PositionCalculator.calculate({
                             'cl': {
-                                'adder': '+',
+                                'adder': '+'
                             },
                             'expression': {
                                 'pw': {
-                                    'adder': '+',
+                                    'adder': '+'
                                 },
                                 'cw': {
                                     'adder': '-'
@@ -377,7 +411,7 @@
 
             /**
              * function returns current autoposition representation eq. top, left, bottom, right 
-             * @returns {@param;String}
+             * @returns {String}
              */
             this.getPosition = function () {
                 return this.autoPosition;
@@ -433,7 +467,7 @@
              * Gets positions for bond between nodes to draw 
              * @returns {mad.hierarchyL#1.$.fn.madHierarchy.AutoPosition.positions.bond}
              */
-            this.bondStart = function () {
+            this.getBondPositions = function () {
                 return this.positions().bond;
             };
 
@@ -447,31 +481,30 @@
                     case 'left' :
                     {
                         obj = {
-                            degree: 0,
-                            bond: this.autoBondPosition()
+                            degree: 0
                         };
                         break;
                     }
                     case 'bottom' :
                     {
                         obj = {
-                            degree: -90,
+                            degree: -90
                         };
                         break;
                     }
                     case 'right' :
                     {
-                        obj = {degree: 180};//180;
+                        obj = {degree: 180};
                         break;
                     }
                     case 'top' :
                     {
-                        obj = {degree: 90};//90;
+                        obj = {degree: 90};
                         break
                     }
                 }
-
-                return Object.assign({}, obj, {node: this.autoNodePosition()});
+ 
+                return Object.assign({}, obj, {node: this.autoNodePosition()}, {bond: this.autoBondPosition()});
             };
         }
 
@@ -512,22 +545,25 @@
                 });
             },
 
-            setNodePosition: function (parentNode, distance) {
+            setNodePosition: function () {
                 current = PositionCalculator.current().node();
                 current.css({
                     'top': this.autoPosition.getNodePositions().top(),
                     'left': this.autoPosition.getNodePositions().left()
                 });
-                this.drawBond(parentNode, current);
+                this.drawBond();
                 this.autoPosition.setPosition(this.autoPosition.getNextPosition());
             },
-            drawBond: function (parentNode, currNode) {
-                var distanceStartTop = parseFloat(parentNode.position().top) + parseFloat(parentNode.height()) / 2;
-                var distanceStartLeft = parseFloat(parentNode.position().left) + parseFloat(parentNode.width()) + settings.borderSpace;
+
+            drawBond: function () {
+                var startTop = this.autoPosition.getBondPositions().top();
+                var startLeft = this.autoPosition.getBondPositions().left();
                 var degree = this.autoPosition.getDegree();
-                var $distance = distanceElement.create(distanceStartTop, distanceStartLeft, degree);
-                currNode.before($distance);
+                var $distance = distanceElement.create(startTop, startLeft, degree);
+                current = PositionCalculator.current().node();
+                current.before($distance);
             },
+
             resizeBond: function (node, width, animationSpeed) {
                 var relatedNodes = $('div').filter(function () {
                     return node.getSelector().indexOf($(this).attr('data-parent')) >= 0;
