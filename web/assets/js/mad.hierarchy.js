@@ -203,6 +203,16 @@
                     },
                     height: function () {
                         return currNode.borderedNode.height();
+                    },
+                    width: function () {
+                        return currNode.borderedNode.width();
+                    },
+                    distance: function () {
+                        var $distance = currNode.originalNode.distance;
+                        return $distance ? $distance : settings.nodeDistance;
+                    },
+                    node: function () {
+                        return currNode.borderedNode;
                     }
                 };
             },
@@ -228,12 +238,26 @@
                                 value = parseFloat(this.parent.height());
                                 break;
                             }
-                            case 'ch': 
+                            case 'ch':
                             {
                                 value = parseFloat(this.current().height());
                                 break;
                             }
-                            case 'expression': 
+                            case 'pw':
+                            {
+                                value = parseFloat(this.parent.width());
+                                break;
+                            }
+                            case 'cw':
+                            {
+                                value = parseFloat(this.current().width());
+                            }
+                            case 'd':
+                            {
+                                value = parseFloat(this.current().distance());
+                                break;
+                            }
+                            case 'expression':
                             {
                                 value = this.calculate(settings[key]);
                                 break;
@@ -268,11 +292,24 @@
             this.parent = '';
             this.current = '';
             this.calculatedPositions = '';
+            
+            this.autoBondPosition = function () {
+                return {
+                    'top': function () {
+                        parseFloat(parentNode.position().top) + parseFloat(parentNode.height()) / 2;
+                    },
+                    'left': function () {
+
+                    }      
+                };
+            };
+
             this.autoNodePosition = function () {
                 var lr = ['left', 'right'];
-                return {    
+                var curPos = this.getPosition();
+                return {
                     top: function () {
-                        if (lr.indexOf(this.autoPosition) >= 0) {
+                        if (lr.indexOf(curPos) >= 0) {
                             var result = PositionCalculator.calculate({
                                 'ct': {
                                     'adder': '+'
@@ -282,7 +319,7 @@
                                         'adder': '+'
                                     },
                                     'ch': {
-                                        'adder': '-',
+                                        'adder': '-'
                                     },
                                     'adder': '+',
                                     'div': 2
@@ -291,50 +328,51 @@
 
                             return result;
                         }
-                        return (parseFloat(this.currPos.top) +
-                            parseFloat(this.parent.height()) +
-                            parseFloat(this.distance));
-                        
-                    },
-                    left: function () {
-                        return;
-                    }
-                };
-            };
-            this.top = function () { 
-                if (this.lr.indexOf(this.autoPosition) >= 0) {
-                    var result = PositionCalculator.calculate({
-                        'ct': {
-                            'adder': '+'
-                        },
-                        'expression': {
+                        return PositionCalculator.calculate({
+                            'ct': {
+                                'adder': '+'
+                            },
                             'ph': {
                                 'adder': '+'
                             },
-                            'ch': {
-                                'adder': '-',
-                            },
-                            'adder': '+',
-                            'div': 2
+                            'd': {
+                                'adder': curPos === 'bottom' ? '+' : '-'
+                            }
+                        });
+                    },
+                    left: function () {
+                        var lr = ['left', 'right'];
+                        if (lr.indexOf(curPos) >= 0) {
+                            return PositionCalculator.calculate({
+                                'cl': {
+                                    'adder': '+'
+                                },
+                                'pw': {
+                                    'adder': '+'
+                                },
+                                'd': {
+                                    'adder': '+'
+                                }
+                            });
                         }
-                    });
-
-                    return result;
-                }
-                return (parseFloat(this.currPos.top) +
-                        parseFloat(this.parent.height()) +
-                        parseFloat(this.distance));
-            };
-
-            this.left = function () {
-                if (this.lr.indexOf(this.autoPosition) >= 0) {
-                    return (parseFloat(this.currPos.left) +
-                            parseFloat(this.parent.width()) +
-                            parseFloat(this.distance));
-                }
-                return parseFloat(this.currPos.left) +
-                        ((parseFloat(this.parent.width()) -
-                                parseFloat(this.current.width())) / 2);
+                        
+                        return PositionCalculator.calculate({
+                            'cl': {
+                                'adder': '+',
+                            },
+                            'expression': {
+                                'pw': {
+                                    'adder': '+',
+                                },
+                                'cw': {
+                                    'adder': '-'
+                                },
+                                'adder': '+',
+                                'div': 2
+                            }
+                        });
+                    }
+                };
             };
 
             /**
@@ -385,9 +423,9 @@
             /**
              * Gets position for nodes in autoposition 
              * @returns {undefined}
+             * 
              */
             this.getNodePositions = function () {
-                console.log(this.positions())
                 return this.positions().node;
             };
 
@@ -404,33 +442,43 @@
              * @returns {mad.hierarchyL#1.$.fn.madHierarchy.AutoPosition.positions.mad.hierarchyAnonym$3|mad.hierarchyL#1.$.fn.madHierarchy.AutoPosition.positions.mad.hierarchyAnonym$2|mad.hierarchyL#1.$.fn.madHierarchy.AutoPosition.positions.mad.hierarchyAnonym$1|mad.hierarchyL#1.$.fn.madHierarchy.AutoPosition.positions.mad.hierarchyAnonym$4}
              */
             this.positions = function () {
+                var obj = {};
                 switch (this.getPosition()) {
                     case 'left' :
                     {
-                        return {
+                        obj = {
                             degree: 0,
-                            node: this.autoNodePosition()
+                            bond: this.autoBondPosition()
                         };
+                        break;
                     }
                     case 'bottom' :
                     {
-                        return {degree: -90};//-90;
+                        obj = {
+                            degree: -90,
+                        };
+                        break;
                     }
                     case 'right' :
                     {
-                        return {degree: 180};//180;
+                        obj = {degree: 180};//180;
+                        break;
                     }
                     case 'top' :
                     {
-                        return {degree: 90};//90;
+                        obj = {degree: 90};//90;
+                        break
                     }
                 }
+
+                return Object.assign({}, obj, {node: this.autoNodePosition()});
             };
         }
 
         var madFinisher = {
             autoPosition: new AutoPosition(),
             createdNodes: [],
+
             prepareNodes: function (elementToStick, nodes, level) {
                 level = typeof level === 'undefined' ? 0 : parseInt(level);
                 var $nodes = nodes;
@@ -463,14 +511,12 @@
                     $parser.resizeBond($(this), 0, 0);
                 });
             },
+
             setNodePosition: function (parentNode, distance) {
-                var nodeCount = this.createdNodes.length,
-                        current = this.createdNodes[parseInt(nodeCount) - 1];
-                this.autoPosition.distance = typeof distance !== 'undefined' ? distance : settings.nodeDistance;
-                this.autoPosition.relatedNodes(parentNode, current);
+                current = PositionCalculator.current().node();
                 current.css({
                     'top': this.autoPosition.getNodePositions().top(),
-                    'left': this.autoPosition.left()
+                    'left': this.autoPosition.getNodePositions().left()
                 });
                 this.drawBond(parentNode, current);
                 this.autoPosition.setPosition(this.autoPosition.getNextPosition());
