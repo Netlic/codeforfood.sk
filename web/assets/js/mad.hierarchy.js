@@ -74,6 +74,7 @@
                 }
                 return $borderElement;
             },
+
             setBorderRadius: function (node, borderElement) {
                 var $leftTop = node.css('borderTopLeftRadius'),
                         $rightTop = node.css('borderTopRightRadius'),
@@ -131,11 +132,12 @@
                                     });
                         });
             },
+
             setBorderHover: function (borderElement) {
                 var $effect = borderElement.find('.mad-hierarchy-node-border-effect');
                 var $bElement = this;
                 var $node = this.node,
-                        $width = $node.width(), $height = $node.height();
+                    $width = $node.width(), $height = $node.height();
                 borderElement.mouseenter(function () {
                     $(this).animate({
                         'width': (parseFloat($width) + settings.borderSpace) + 'px',
@@ -480,17 +482,133 @@
                 switch (this.getPosition()) {
                     case 'left' :
                     {
-                        obj = {
-                            degree: 0
+                        return {
+                            degree: 0,
+                            node: {
+                                top: function () {
+                                    return PositionCalculator.calculate({
+                                        'ct': {
+                                            'adder': '+'
+                                        },
+                                        'expression': {
+                                            'ph': {
+                                                'adder': '+'
+                                            },
+                                            'ch': {
+                                                'adder': '-'
+                                            },
+                                            'adder': '+',
+                                            'div': 2
+                                        }
+                                    });
+                                },
+                                left: function () {
+                                    return PositionCalculator.calculate({
+                                        'cl': {
+                                            'adder': '+'
+                                        },
+                                        'pw': {
+                                            'adder': '+'
+                                        },
+                                        'd': {
+                                            'adder': '+'
+                                        }
+                                    });
+                                }
+                            },
+                            bond: {
+                                top: function () {
+                                    return PositionCalculator.calculate({
+                                        'pt': {
+                                            'adder': '+'
+                                        },
+                                        'ph': {
+                                            'adder': '+',
+                                            'div': 2
+                                        }
+                                    });
+                                },
+                                left: function () {
+                                    return PositionCalculator.calculate({
+                                        'pl': {
+                                            'adder': '+'
+                                        },
+                                        'pw': {
+                                            'adder': '+'
+                                        },
+                                        'custom': {
+                                            'adder': '+',
+                                            'value': settings.borderSpace
+                                        }
+                                    });
+                                }
+                            }
                         };
-                        break;
                     }
                     case 'bottom' :
                     {
-                        obj = {
-                            degree: -90
+                        return {
+                            degree: -90,
+                            node: {
+                                top: function () {
+                                    return PositionCalculator.calculate({
+                                        'ct': {
+                                            'adder': '+'
+                                        },
+                                        'ph': {
+                                            'adder': '+'
+                                        },
+                                        'd': {
+                                            'adder': '+'
+                                        }
+                                    });
+                                },
+                                left: function () {
+                                    return PositionCalculator.calculate({
+                                        'cl': {
+                                            'adder': '+'
+                                        },
+                                        'expression': {
+                                            'pw': {
+                                                'adder': '+'
+                                            },
+                                            'cw': {
+                                                'adder': '-'
+                                            },
+                                            'adder': '+',
+                                            'div': 2
+                                        }
+                                    });
+                                }
+                            },
+                            bond: {
+                                top: function () {
+                                    return PositionCalculator.calculate({
+                                        'pt': {
+                                            'adder': '+'
+                                        },
+                                        'ph': {
+                                            'adder': '+',
+                                        }
+                                    });
+                                },
+                                left: function () {
+                                    return PositionCalculator.calculate({
+                                        'pl': {
+                                            'adder': '+'
+                                        },
+                                        'pw': {
+                                            'adder': '+',
+                                            'div': 2
+                                        }
+                                        /*'custom': {
+                                            'adder': '+',
+                                            'value': settings.borderSpace
+                                        }*/
+                                    });
+                                }
+                            }
                         };
-                        break;
                     }
                     case 'right' :
                     {
